@@ -7,7 +7,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.core.files.storage import FileSystemStorage
 
-from student_application.models import (  
+from .models import (  
 
     CustomUser,
 
@@ -16,7 +16,10 @@ from student_application.models import (
     Students,
     Subject,
     Parent,    
- 
+    EducationLevel,
+    Class_level,
+   School, 
+    
 )
 
 from student_application.forms import  (
@@ -43,14 +46,9 @@ def admin_home(request):
   
     subject_count = Subject.objects.all().count()
     student_count = Students.objects.all().count()
-
     subject_all = Subject.objects.all()
     subject_list = [subject.subject_name for subject in subject_all]
-
-
-
     student_all = Students.objects.all()
-
     student_name_list = []
     for student in student_all:  
         student_name_list.append(student.admin.username)
@@ -62,15 +60,15 @@ def admin_home(request):
         "student_count": student_count,
     }
 
-    return render(request, "hod_template/home_content.html", context)
+    return render(request, "admin_template/home_content.html", context)
 
 def add_parents(request):
     students = Students.objects.all()
-    return render(request, "hod_template/parent_form.html", {'students': students})   
+    return render(request, "admin_template/parent_form.html", {'students': students})   
 
 def add_parents(request):
     students = Students.objects.all()
-    return render(request, "hod_template/parent_form.html", {'students': students})   
+    return render(request, "admin_template/parent_form.html", {'students': students})   
 
 
 def edit_parents(request, parent_id):
@@ -82,7 +80,7 @@ def edit_parents(request, parent_id):
         # Get the IDs of currently associated students, if any
         associated_student_ids = parent.student.all().values_list('id', flat=True)
 
-        return render(request, "hod_template/edit_parent.html", {
+        return render(request, "admin_template/edit_parent.html", {
             "id": parent_id,
             "username": parent.name,
             "parents": parent,
@@ -167,7 +165,7 @@ def update_parent(request, parent_id):
             'students': Students.objects.all(),
             'selected_student_ids': [student.id for student in parent.student.all()] if hasattr(parent, 'student') else []
         }
-        return render(request, 'hod_template/edit_parent.html', context)
+        return render(request, 'admin_template/edit_parent.html', context)
 
     except Parent.DoesNotExist:
         messages.error(request, "Parent not found.")
@@ -268,12 +266,11 @@ def add_student_save(request):
             date_of_birth = datetime.strptime(date_of_birth_str, '%Y-%m-%d').date()
             gender = request.POST.get('gender')
             phone_number = request.POST.get('phone_number')
-            school_segment = request.POST.get('school_segment')
-            current_class = request.POST.get('current_class')
+            school_segment_ids = request.POST.get('school_segment')
+            current_class_ids = request.POST.get('current_class')
             birth_certificate_id = request.POST.get('birth_certificate_id')
-            allergies = request.POST.get('allergies')
-            current_year = request.POST.get('current_year')
-            is_finished = request.POST.get('is_finished')
+            allergies = request.POST.get('allergies')           
+            
             sheia_address = request.POST.get('sheia_address')
             street_address = request.POST.get('street_address')
             house_number = request.POST.get('house_number')
@@ -318,7 +315,7 @@ def add_student_save(request):
                 default_email = first_name.lower() + "@gmail.com"
                 password = '1234'  # Set a default password
                 
-                user= CustomUser.objects.create_user(username=username,password=password,email=default_email,first_name=first_name,last_name=last_name,user_type=3)
+                user= CustomUser.objects.create_user(username=username,password=password,email=default_email,first_name=first_name,last_name=last_name,user_type=2)
 
                 # Create a new instance of the Student model
                
@@ -327,13 +324,9 @@ def add_student_save(request):
                 user.students.last_name = last_name
                 user.students.date_of_birth = date_of_birth
                 user.students.gender = gender
-                user.students.phone_number = phone_number
-                user.students.school_segment = school_segment
-                user.students.current_class = current_class
+                user.students.phone_number = phone_number       
                 user.students.birth_certificate_id = birth_certificate_id
-                user.students.allergies = allergies
-                user.students.current_year = current_year
-                user.students.is_finished = is_finished
+                user.students.allergies = allergies           
                 user.students.address = sheia_address
                 user.students.street_address = street_address
                 user.students.house_number = house_number
@@ -349,6 +342,14 @@ def add_student_save(request):
                 for subject_id in subjects_ids:
                     subject = Subject.objects.get(pk=subject_id)
                     user.students.subjects.add(subject)
+                    
+                for school_segment_id in school_segment_ids:
+                    educational_level = EducationLevel.objects.get(pk=school_segment_id)
+                    user.students.education_level = educational_level
+                    
+                for current_class_id in current_class_ids:
+                    current_class = Subject.objects.get(pk=current_class_id)
+                    user.students.selected_class = current_class
 
                 # Add the selected session year to the student's session_id field
                 session_year = SessionYearModel.objects.get(pk=session_year_id)
@@ -373,13 +374,17 @@ def add_student_save(request):
 def add_student(request):
     all_subjects = Subject.objects.all()
     all_session_years = SessionYearModel.objects.all()
+    
+    # Query all education levels from the EducationLevel model
+    all_education_levels = EducationLevel.objects.all()
 
     context = {
         "all_subjects": all_subjects,
         "all_session_years": all_session_years,
+        "all_education_levels": all_education_levels,  # Add education levels to the context
     }
 
-    return render(request, "hod_template/add_student.html", context)
+    return render(request, "admin_template/add_student.html", context)
 
 def single_student_detail(request, student_id):
     students = get_object_or_404(Students, id=student_id)
@@ -420,7 +425,7 @@ def single_student_detail(request, student_id):
         'selected_subjects':selected_subjects,
     }
 
-    return render(request, "hod_template/student_details.html", context)
+    return render(request, "admin_template/student_details.html", context)
 
 
 def single_parent_detail(request, parent_id):
@@ -432,7 +437,7 @@ def single_parent_detail(request, parent_id):
         'students': students,
     }
     
-    return render(request, "hod_template/parent_details.html", context)
+    return render(request, "admin_template/parent_details.html", context)
 
 
   
@@ -448,7 +453,7 @@ def manage_student(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    return render(request, "hod_template/manage_student.html", {"students": students, "page_obj": page_obj})
+    return render(request, "admin_template/manage_student.html", {"students": students, "page_obj": page_obj})
 
 
 def manage_parent(request):
@@ -458,7 +463,7 @@ def manage_parent(request):
     paginator = Paginator(parents, per_page)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, "hod_template/manage_parent.html", {"students": parents, "page_obj": page_obj})
+    return render(request, "admin_template/manage_parent.html", {"students": parents, "page_obj": page_obj})
  
 def student_list(request):
     search_query = request.GET.get('search', '')
@@ -486,7 +491,7 @@ def manage_subject(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    return render(request, "hod_template/manage_subject.html", {
+    return render(request, "admin_template/manage_subject.html", {
         "subjects": subjects,
         "page_obj": page_obj,
         "search_query": search_query,
@@ -496,7 +501,7 @@ def manage_subject(request):
 def edit_subject(request,subject_id):
     # If you want to populate the form fields with an existing Subject object
     subject = Subject.objects.get(pk=subject_id)  # Replace subject_id with the ID of the Subject you want to edit
-    return render(request, 'hod_template/edit_subject.html', {'subject': subject}) 
+    return render(request, 'admin_template/edit_subject.html', {'subject': subject}) 
    
 
 def create_or_edit_subject(request, subject_id):
@@ -525,7 +530,7 @@ def create_or_edit_subject(request, subject_id):
 
 def subject_details(request, subject_id):
     subject = get_object_or_404(Subject, pk=subject_id)
-    return render(request, 'hod_template/subject_detail.html', {'subject': subject})
+    return render(request, 'admin_template/subject_detail.html', {'subject': subject})
 
 
 def edit_student_save(request):
@@ -550,12 +555,10 @@ def edit_student_save(request):
         date_of_birth = datetime.strptime(date_of_birth_str, '%Y-%m-%d').date()
         gender = request.POST.get('gender')
         phone_number = request.POST.get('phone_number')
-        school_segment = request.POST.get('school_segment')
-        current_class = request.POST.get('current_class')
+        school_segment_ids = request.POST.get('school_segment')
+        current_class_ids = request.POST.get('current_class')
         birth_certificate_id = request.POST.get('birth_certificate_id')
         allergies = request.POST.get('allergies')
-        current_year = request.POST.get('current_year')
-        is_finished = request.POST.get('is_finished')
         sheia_address = request.POST.get('sheia_address')
         street_address = request.POST.get('street_address')
         house_number = request.POST.get('house_number')
@@ -583,12 +586,8 @@ def edit_student_save(request):
         student.date_of_birth = date_of_birth
         student.gender = gender
         student.phone_number = phone_number
-        student.school_segment = school_segment
-        student.current_class = current_class
         student.birth_certificate_id = birth_certificate_id
         student.allergies = allergies
-        student.current_year = current_year
-        student.is_finished = is_finished
         student.address = sheia_address
         student.street_address = street_address
         student.house_number = house_number
@@ -624,6 +623,14 @@ def edit_student_save(request):
         for subject_id in subjects_ids:
             subject = Subject.objects.get(pk=subject_id)
             student.subjects.add(subject)
+            
+        for school_segment_id in school_segment_ids:
+            educational_level = EducationLevel.objects.get(pk=school_segment_id)
+            student.education_level = educational_level
+                    
+        for current_class_id in current_class_ids:
+            current_class = Subject.objects.get(pk=current_class_id)
+            student.selected_class = current_class
 
         # Add the selected session year to the student's session_year field
         session_year = SessionYearModel.objects.get(pk=session_year_id)
@@ -647,8 +654,13 @@ def edit_student_save(request):
         messages.error(request, "Failed to edit student due to a database error")
         return HttpResponseRedirect(reverse("edit_student"))
 
-
-
+@csrf_exempt
+def get_class_levels(request):
+    if request.method == 'GET':
+        education_level_id = request.GET.get('education_level_id')
+        # Query class levels based on the selected education level
+        class_levels = Class_level.objects.filter(school_level_id=education_level_id).values('id', 'name')
+        return JsonResponse(list(class_levels), safe=False)
 
    
 def edit_student(request, student_id):
@@ -664,7 +676,7 @@ def edit_student(request, student_id):
         selected_subjects = student.subjects.all()
         selected_session_year = student.session_year
 
-        return render(request, "hod_template/edit_student.html", {
+        return render(request, "admin_template/edit_student.html", {
             "student_id": student_id,
             "username": student.admin.username,
             "students": student,
@@ -679,11 +691,11 @@ def edit_student(request, student_id):
         return HttpResponseRedirect(reverse("manage_studen"))
     
 def add_session(request):    
-    return render(request,"hod_template/add_session.html")
+    return render(request,"admin_template/add_session.html")
 
 def edit_session(request, session_id):
     session = get_object_or_404(SessionYearModel, id=session_id)
-    return render(request, "hod_template/edit_session.html", {"session": session})
+    return render(request, "admin_template/edit_session.html", {"session": session})
 
 
 def edit_session_save(request, session_id):
@@ -708,12 +720,12 @@ def edit_session_save(request, session_id):
         # Display an error message for invalid form submission
         messages.error(request, 'Failed to update session. Please check the form data.')
 
-    return render(request, 'hod_template/edit_session.html', {'session': session})
+    return render(request, 'admin_template/edit_session.html', {'session': session})
 
 
 def manage_session(request):
     sessions = SessionYearModel.objects.all()
-    return render(request, 'hod_template/manage_session.html', {'sessions': sessions})
+    return render(request, 'admin_template/manage_session.html', {'sessions': sessions})
 
 def delete_session(request, session_id):
     try:
@@ -742,11 +754,11 @@ def add_session_save(request):
             # Display an error message if any of the fields are missing
             messages.error(request, 'Failed to add session. Please fill in all the fields.')
     
-    return render(request, 'hod_template/ad_session.html')    
+    return render(request, 'admin_template/ad_session.html')    
 
 def  admin_profile(request):
     user = CustomUser.objects.get(id=request.user.id)
-    return render(request,"hod_template/admin_profile.html",{"user":user})  
+    return render(request,"admin_template/admin_profile.html",{"user":user})  
 
 def edit_profile_save(request):
     if request.method!="POST":
@@ -816,8 +828,170 @@ def add_subject_save(request):
         else:
             messages.error(request, "Invalid form submission. Please check the form fields.")
             return HttpResponseRedirect(reverse("addsubject"))
+  
+  
+def add_class_level(request):
+    # Query the database to get a list of education levels
+    education_levels = EducationLevel.objects.all()  # You can adjust this query as needed
+
+    context = {
+        'education_levels': education_levels,
+    }
+
+    return render(request, 'admin_template/add_school_class.html', context)    
+
+def add_class_level_save(request):
+    if request.method == 'POST':
+        # Retrieve form data from request.POST
+        name = request.POST.get('name')
+        school_level_id = request.POST.get('school_level')
+        capacity = request.POST.get('capacity')
+        start_date = request.POST.get('start_date')
+
+        try:
+            # Fetch the selected EducationLevel instance
+            school_level = EducationLevel.objects.get(id=school_level_id)
+
+            # Create a new Class_level instance and save it to the database
+            class_level = Class_level(
+                name=name,
+                school_level=school_level,
+                capacity=capacity,
+                start_date=start_date,
+            )
+            class_level.save()
+
+            # Add a success message
+            messages.success(request, 'Class Level added successfully.')
+
+            # Redirect to a success page or another view
+            return redirect('class_level_list')  # Replace with your desired URL name
+        except EducationLevel.DoesNotExist:
+            # Handle the case where the selected EducationLevel doesn't exist
+            # Add an error message
+            messages.error(request, 'Selected School Level does not exist. Please select a valid School Level.')
+
+    # Handle GET request or any form submission errors here
+    return render(request, 'admin_template/add_school_class.html')      
+
+
+def manage_class_level(request):
+    # Retrieve all Class_level instances
+    class_levels = Class_level.objects.all()    
+    # Render the template and pass the class_levels queryset
+    return render(request, 'admin_template/manage_school_class.html', {'class_levels': class_levels})
+
+def edit_class_level(request, class_level_id):
+    # Retrieve the Class_level object or return a 404 error if not found
+    class_level = get_object_or_404(Class_level, id=class_level_id)
+
+    context = {
+            'class_level': class_level,
+        }
+    return render(request, 'admin_template/edit_class_level.html', context)
+
+def edit_class_level_save(request, class_level_id):
+    # Get the Class_level object to edit
+    class_level = get_object_or_404(Class_level, id=class_level_id)
+    
+    if request.method == 'POST':
+        try:
+            # Extract data from the form
+            name = request.POST['name']
+            school_level_id = request.POST['school_level']
+            capacity = request.POST['capacity']
+            start_date = request.POST['start_date']
             
+            # Update the Class_level object
+            class_level.name = name
+            class_level.school_level_id = school_level_id
+            class_level.capacity = capacity
+            class_level.start_date = start_date
+            
+            # Save the changes
+            class_level.save()
+            
+            messages.success(request, 'Class Level updated successfully.')
+            return redirect('class_level_list')  # Replace with your desired URL name for the class level list
+        except Exception as e:
+            messages.error(request, f'An error occurred: {str(e)}')
+            # You can add additional error handling here if needed
+    return render(request, 'admin_template/edit_class_level.html', {'class_level': class_level})
 
 def add_subject(request):
     forms = AddSubjectForm()
-    return render(request,"hod_template/add_subject.html",{"forms":forms})       
+    return render(request,"admin_template/add_subject.html",{"forms":forms})    
+
+   
+def add_school(request):    
+    return render(request,"admin_template/manage_school_infor.html")
+   
+def add_school_save(request):
+    if request.method == 'POST':
+        try:
+            # Extract data from the form
+            name = request.POST['name']
+            address = request.POST['address']
+            contact_person = request.POST.get('contact_person', '')  # Use get() to handle optional fields
+            contact_email = request.POST.get('contact_email', '')
+            contact_phone = request.POST.get('contact_phone', '')
+            website = request.POST.get('website', '')
+            established_year = request.POST.get('established_year', None)  # Use None for optional integer fields
+            principal = request.POST.get('principal', '')
+            description = request.POST.get('description', '')
+
+            # Create a new School object and save it to the database
+            school = School(
+                name=name,
+                address=address,
+                contact_person=contact_person,
+                contact_email=contact_email,
+                contact_phone=contact_phone,
+                website=website,
+                established_year=established_year,
+                principal=principal,
+                description=description
+            )
+            school.save()
+
+            messages.success(request, 'School added successfully.')
+            return redirect('school_list')  # Replace with your desired URL name for the school list
+        except Exception as e:
+            messages.error(request, f'Error: {e}')
+            return redirect('add_school')  # Redirect back to the add school form with an error message
+
+    return render(request, 'add_school.html')  # Adjust the template name as needed   
+
+def manage_school_save(request):
+    # Retrieve all Class_level instances
+    schools = School.objects.all()    
+    # Render the template and pass the class_levels queryset
+    return render(request, 'admin_template/manage_school_infor.html', {'schools': schools})
+
+
+def add_education_level(request):    
+    return render(request,"admin_template/add_education_level.html")
+
+def add_education_level_save(request):
+    if request.method == 'POST':
+        try:
+            # Extract data from the form
+            name = request.POST['name']
+
+            # Create a new EducationLevel object and save it to the database
+            education_level = EducationLevel(name=name)
+            education_level.save()
+
+            messages.success(request, 'Education Level added successfully.')
+            return redirect('education_level_list')  # Replace with your desired URL name for the education level list
+        except Exception as e:
+            messages.error(request, f'Error: {e}')
+            return redirect('add_education_level')  # Redirect back to the add education level form with an error message
+
+    return render(request, 'admin_template/add_education_level.html')  # Adjust the template name as needed
+
+def manage_education_level(request):
+    # Retrieve all Class_level instances
+    education_levels = EducationLevel.objects.all()    
+    # Render the template and pass the class_levels queryset
+    return render(request, 'admin_template/manage_education_level.html', {'education_levels': education_levels})

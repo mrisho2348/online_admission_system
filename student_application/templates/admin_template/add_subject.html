@@ -1,5 +1,5 @@
  
-{% extends 'hod_template/base_template.html' %}
+{% extends 'admin_template/base_template.html' %}
 {% block page_title %}
         Add Subject    
 {% endblock page_title %}
@@ -23,7 +23,7 @@
                     </div>
 
                     {% url 'addsubjectsave' as action_path %}
-                    {% include 'hod_template/form_template.html' with messages=messages forms=forms action_path=action_path button_text="Add Subject" %}
+                    {% include 'admin_template/form_template.html' with messages=messages forms=forms action_path=action_path button_text="Add Subject" %}
                   </div>
 
                   </div>

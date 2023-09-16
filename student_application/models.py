@@ -6,7 +6,9 @@ from django.db.models.signals import post_save
 # Model for Education Levels (Secondary, Primary, Nursery)
 class EducationLevel(models.Model):
     name = models.CharField(max_length=50)
-
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    objects = models.Manager()
     def __str__(self):
         return self.name
     
@@ -14,7 +16,9 @@ class SessionYearModel(models.Model):
     id = models.AutoField(primary_key=True)
     session_start_year = models.DateField()
     session_end_year = models.DateField()
-    objects=models.Manager()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    objects = models.Manager()
         
 
     
@@ -80,17 +84,22 @@ class School(models.Model):
     established_year = models.PositiveIntegerField(blank=True, null=True)
     principal = models.CharField(max_length=100, blank=True, null=True)
     description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    objects = models.Manager()
 
     def __str__(self):
         return self.name
 
 # Model for Classes
-class Class(models.Model):
+class Class_level(models.Model):
     name = models.CharField(max_length=50)
-    school = models.ForeignKey(School, on_delete=models.CASCADE)
-    class_teacher = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    school_level = models.ForeignKey(EducationLevel, on_delete=models.CASCADE)
     capacity = models.PositiveIntegerField()
     start_date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    objects = models.Manager()
 
     def __str__(self):
         return f"{self.school} - {self.name}"
@@ -117,7 +126,7 @@ class Students(models.Model):
     gender = models.CharField(max_length=10)    
     phone_number = models.CharField(max_length=20)
     education_level = models.ForeignKey(EducationLevel, on_delete=models.CASCADE)
-    selected_class = models.ForeignKey(Class, on_delete=models.SET_NULL, null=True, blank=True)
+    selected_class = models.ForeignKey(Class_level, on_delete=models.SET_NULL, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     birth_certificate_id = models.CharField(max_length=100)
     allergies = models.TextField(blank=True, null=True)
@@ -181,7 +190,9 @@ class Admission(models.Model):
     admission_fee_amount = models.DecimalField(max_digits=10, decimal_places=2, default=10000.00)
     interview_date = models.DateTimeField(null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
-
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    objects = models.Manager()
     def __str__(self):
         return f"Admission for {self.student.user.username}"
 

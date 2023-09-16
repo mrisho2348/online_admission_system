@@ -1,0 +1,139 @@
+{% load static %}
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <!-- Brand Logo -->
+    <a href="index3.html" class="brand-link">
+        <img src="{% static 'dist/img/LogoNembo.jpg' %}" alt="mujtabaa Logo" class="brand-image img-circle elevation-3"
+             style="opacity: .8">
+        <span class="brand-text font-weight-light">mujtabaa school </span>
+      </a>
+  
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <!-- Sidebar user panel (optional) -->
+      <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+        <div class="image">
+            {% if student.profile_pic %}
+            <img src="{{ student.profile_pic }}" class="img-circle elevation-2" alt="User Image">
+        {% else %}
+            <img src="{% static 'dist/img/user2-160x160.jpg' %}" class="img-circle elevation-2" alt="User Image">
+        {% endif %}
+          </div>
+        <div class="info">
+          {% url 'admin_profile' as admin_profile %}
+          <a href="{% url 'admin_profile' %}" class="d-block">{{user.username}}</a>
+        </div>
+      </div>
+
+      <!-- Sidebar Menu -->
+      <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+          <!-- Add icons to the links using the .nav-icon class
+               with font-awesome or any other icon font library -->
+
+          <li class="nav-item">
+             {% url 'admin_home' as admin_home %}
+            <a href="{% url 'admin_home' %}" class="nav-link {% if request.path == admin_home %} active {% endif %}">
+              <i class="nav-icon fas fa-th"></i>
+              <p>
+                HOME
+                {% comment %} <span class="right badge badge-danger">New</span> {% endcomment %}
+              </p>
+            </a>
+          </li>
+
+
+
+          <li class="nav-item">
+            {% url 'add_student' as add_student %}
+            <a href="{% url 'add_student' %}" class="nav-link {% if request.path == add_student %}active{% endif %}">
+              <i class="nav-icon fas fa-th"></i>
+              <p>
+                Add Students
+                {% comment %} <span class="right badge badge-danger">New</span> {% endcomment %}
+              </p>
+            </a>
+          </li>
+          <li class="nav-item">
+            {% url 'manage_student' as manage_student %}
+            {% url 'edit_student' student_id=id as edit_student %}
+            <a href="{% url 'manage_student' %}" class="nav-link {% if request.path == manage_student %}active{% endif %}{% if request.path == edit_student %}active{% endif %} ">
+              <i class="nav-icon fas fa-th"></i>
+              <p>
+                Manage Students
+                {% comment %} <span class="right badge badge-danger">New</span> {% endcomment %}
+              </p>
+            </a>
+          </li>
+
+
+          <li class="nav-item">
+            {% url 'addsubject' as addsubject %}
+            <a href="{% url 'addsubject' %}" class="nav-link {% if request.path == addsubject %}active{% endif %}">
+              <i class="nav-icon fas fa-th"></i>
+              <p>
+                Add Subject
+                {% comment %} <span class="right badge badge-danger">New</span> {% endcomment %}
+              </p>
+            </a>
+          </li>
+          <li class="nav-item">
+            {% url 'manage_subject' as manage_subject %}
+            {% url 'edit_subject' subject_id=id as edit_subject %}
+            <a href="{% url 'manage_subject' %}" class="nav-link {% if request.path == manage_subject %}active{% endif %}{% if request.path == edit_subject %} active {% endif %} ">
+              <i class="nav-icon fas fa-th"></i>
+              <p>
+                Manage Subject
+                {% comment %} <span class="right badge badge-danger">New</span> {% endcomment %}
+              </p>
+            </a>
+          </li>
+          <li class="nav-item">
+            {% url 'manage_school_save' as manage_school_save %}
+            <a href="{% url 'manage_school_save' %}" class="nav-link {% if request.path == manage_school_save %}active{% endif %}">
+              <i class="nav-icon fas fa-th"></i>
+              <p>
+                Manage school details
+                {% comment %} <span class="right badge badge-danger">New</span> {% endcomment %}
+              </p>
+            </a>
+          </li>
+          <li class="nav-item">
+            {% url 'manage_education_level' as manage_education_level %}
+            {% url 'edit_subject' subject_id=id as edit_subject %}
+            <a href="{% url 'manage_education_level' %}" class="nav-link {% if request.path == manage_education_level %}active{% endif %}{% if request.path == edit_subject %} active {% endif %} ">
+              <i class="nav-icon fas fa-th"></i>
+              <p>
+                Manage education level
+                {% comment %} <span class="right badge badge-danger">New</span> {% endcomment %}
+              </p>
+            </a>
+          </li>
+          <li class="nav-item">
+            {% url 'manage_class_level' as manage_class_level %}
+            {% url 'edit_subject' subject_id=id as edit_subject %}
+            <a href="{% url 'manage_class_level' %}" class="nav-link {% if request.path == manage_class_level %}active{% endif %}{% if request.path == edit_subject %} active {% endif %} ">
+              <i class="nav-icon fas fa-th"></i>
+              <p>
+                Manage school class
+                {% comment %} <span class="right badge badge-danger">New</span> {% endcomment %}
+              </p>
+            </a>
+          </li>
+          <li class="nav-item">
+            {% url 'manage_session' as manage_session %}            
+            <a href="{% url 'manage_session' %}" class="nav-link {% if request.path == manage_session %}active{% endif %}">
+              <i class="nav-icon fas fa-th"></i>
+              <p>
+                Manage session year
+                {% comment %} <span class="right badge badge-danger">New</span> {% endcomment %}
+              </p>
+            </a>
+          </li>
+
+        </ul>
+      </nav>
+      <!-- /.sidebar-menu -->
+    </div>
+    <!-- /.sidebar -->
+  </aside>

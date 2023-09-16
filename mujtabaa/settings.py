@@ -48,7 +48,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'student_application.LoginCheckMiddleWare.LoginCheckMiddleWare',
+    
 ]
+
 
 ROOT_URLCONF = 'mujtabaa.urls'
 
@@ -125,6 +128,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR,"media")
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR,"static")
 
+AUTH_USER_MODEL = 'student_application.CustomUser'
+AUTHENTICATION_BACKENDS = ['student_application.emailBackEnd.EmailBackend']
+
 TWILIO_ACCOUNT_SID = 'AC6c75ccb7e00ed2c529b0821a72335932'
 TWILIO_AUTH_TOKEN = 'c2ee36e153a0cd68a6c84a8a8be38f9f'
 TWILIO_PHONE_NUMBER = '+15103384231'
@@ -134,3 +140,8 @@ TWILIO_PHONE_NUMBER = '+15103384231'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+
+

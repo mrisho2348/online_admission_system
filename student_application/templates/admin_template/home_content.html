@@ -1,5 +1,5 @@
  
-{% extends 'hod_template/base_template.html' %}
+{% extends 'admin_template/base_template.html' %}
 {% block page_title %}
 HOME
 {% endblock page_title %}
@@ -22,7 +22,7 @@ HOME
           </div>
         </div>
         <!-- ./col -->
-        <div class="col-lg-3 col-6">
+        {% comment %} <div class="col-lg-3 col-6">
           <!-- small box -->
           <div class="small-box bg-success">
             <div class="inner">
@@ -32,9 +32,9 @@ HOME
             <div class="icon">
               <i class="fas fa-user-tie"></i>
             </div>
-            <a href="{% url 'manage_staff' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
           </div>
-        </div>
+        </div> {% endcomment %}
         <!-- ./col -->
         <div class="col-lg-3 col-6">
           <!-- small box -->
