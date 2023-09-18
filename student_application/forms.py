@@ -1,26 +1,20 @@
 from django import forms
 
-from student_application.models import   SessionYearModel
+from student_application.models import   SessionYearModel,EducationLevel
 
 
 class DateInput(forms.DateInput):
     input_type = "date"
 
 class AddSubjectForm(forms.Form):
-    SCHOOL_SEGMENT_CHOICES = (
-        ('Nursery', 'Nursery'),
-        ('Primary', 'Primary'),
-        ('Secondary', 'Secondary'),
-    )
-
     subject_name = forms.CharField(
         label='Subject Name',
         max_length=50,
         widget=forms.TextInput(attrs={"class": "form-control"})
     )
-    school_segment = forms.ChoiceField(
-        label='School level',
-        choices=SCHOOL_SEGMENT_CHOICES,
+    school_level = forms.ModelChoiceField(
+        label='School Level',
+        queryset=EducationLevel.objects.all(),
         widget=forms.Select(attrs={"class": "form-control"})
     )
     

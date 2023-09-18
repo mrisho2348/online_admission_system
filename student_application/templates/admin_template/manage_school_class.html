@@ -2,6 +2,12 @@
 {% block page_title %}
     Manage Class Levels
 {% endblock page_title %}
+{% block breadcrumb %}
+    <a class="btn btn-primary" href="{% url 'add_class_level' %}">
+        <i class="fas fa-plus"></i> Class Levels
+    </a>
+ 
+{% endblock breadcrumb %}
 {% block main_content %}
 {% load static %}
 <section class="content">

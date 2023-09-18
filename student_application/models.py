@@ -44,7 +44,7 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
         
 class CustomUser(AbstractUser):
-    user_type_data = ((1, "HOD"), (2, "Students"))
+    user_type_data = ((1, "HOD"), (2, "Student"),(3,"Parent"))
     user_type = models.CharField(default=1, choices=user_type_data, max_length=10)
 
     # Provide unique related_name for groups and user_permissions fields
@@ -125,7 +125,7 @@ class Students(models.Model):
     date_of_birth = models.DateField(blank=True, null=True)
     gender = models.CharField(max_length=10)    
     phone_number = models.CharField(max_length=20)
-    education_level = models.ForeignKey(EducationLevel, on_delete=models.CASCADE)
+    education_level = models.ForeignKey(EducationLevel, on_delete=models.CASCADE,null=True, blank=True)
     selected_class = models.ForeignKey(Class_level, on_delete=models.SET_NULL, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     birth_certificate_id = models.CharField(max_length=100)
@@ -145,7 +145,22 @@ class Students(models.Model):
     objects = models.Manager()
     def __str__(self):
         return self.admin.first_name + " " + self.admin.last_name
+
+class PreviousEducation(models.Model):
+    student = models.ForeignKey('Students', on_delete=models.CASCADE)
+    examination_number = models.CharField(max_length=20)  # Examination number or identifier
+    year_completed = models.PositiveIntegerField()  # Year when the student completed their previous education
+    education_level = models.ForeignKey(EducationLevel, on_delete=models.CASCADE, null=True, blank=True) # Educational level (e.g., High School, College)
+    school_name = models.CharField(max_length=100)  # Name of the school where the student completed their previous education
+    results = models.TextField()  # Store the results or grades in a text field
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now_add=True) 
+    objects = models.Manager()
     
+    def __str__(self):
+        return f"Previous Education - {self.student.admin.username} ({self.school_name})"
+    
+  
     
 class Parent(models.Model):
     id = models.AutoField(primary_key=True)
@@ -206,7 +221,8 @@ def create_user_profile(sender, instance, created, **kwargs):
             AdminHOD.objects.create(admin=instance)
         elif instance.user_type == 2:  # Students
             Students.objects.create(admin=instance)
-
+        elif instance.user_type == 3:  # Parent
+            Parent.objects.create(admin=instance, address="", gender="")
             
  
 @receiver(post_save, sender=CustomUser)
@@ -214,4 +230,6 @@ def save_user_profile(sender, instance, **kwargs):
     if instance.user_type == 1:
         instance.adminhod.save()
     elif instance.user_type == 2:
-        instance.staffs.save()
+        instance.students.save()
+    elif instance.user_type == 3:  # Parent
+        instance.parent.save()

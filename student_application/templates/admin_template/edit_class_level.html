@@ -1,7 +1,7 @@
 {% extends 'admin_template/base_template.html' %}
-{% block page_title %}
+{% block title %}
     Edit Class Level
-{% endblock page_title %}
+{% endblock title %}
 {% block main_content %}
 {% load static %}
 <section class="content">
@@ -35,7 +35,8 @@
                             </div>
                             <div class="form-group">
                                 <label for="start_date">Start Date:</label>
-                                <input type="date" id="start_date" name="start_date" class="form-control" required value="{{ class_level.start_date }}">
+                                <input type="date" id="start_date" name="start_date" class="form-control" required
+                                value="{{ class_level.start_date|date:'Y-m-d' }}">
                             </div>
                             <button type="submit" class="btn btn-primary">Save Changes</button>
                         </form>

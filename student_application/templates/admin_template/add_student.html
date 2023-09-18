@@ -1,8 +1,8 @@
 {% extends 'admin_template/base_template.html' %}
 
-{% block page_title %}
+{% block title %}
     Add Student
-{% endblock page_title %}
+{% endblock title %}
 
 {% block main_content %}
     {% load static %}             
@@ -201,9 +201,7 @@
                                                                         <label for="subjects">Subjects</label>
                                                                         <select class="form-control" id="subjects" name="subjects" required=required multiple>
                                                                             <option value="">Select subjects</option>
-                                                                            {% for subject in all_subjects %}
-                                                                                <option value="{{ subject.id }}">{{ subject.subject_name }}</option>
-                                                                            {% endfor %}
+                                                                           
                                                                         </select>
                                                                     </div>
                                                                 </div>
@@ -279,7 +277,7 @@
                         
                         // Make an AJAX request to fetch class levels based on the selected education level
                         $.ajax({
-                            url: '/get_class_levels/',  // Replace with the actual URL to your get_class_levels view
+                            url: 'get_class_levels',  // Replace with the actual URL to your get_class_levels view
                             data: {
                                 'education_level_id': selectedEducationLevel
                             },
@@ -310,5 +308,51 @@
                     });
                 });
                 </script>
+
+                <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Get references to the education level and subjects select elements
+        var educationLevelSelect = $('#school_segment');
+        var subjectsSelect = $('#subjects');
+
+        // Listen for changes in the education level select
+        educationLevelSelect.on('change', function() {
+            var selectedEducationLevel = educationLevelSelect.val();
+
+            // Make an AJAX request to fetch subjects based on the selected education level
+            $.ajax({
+                url: '/get_subjects_by_education_level/', // Replace with the actual URL for your backend view
+                data: {
+                    'education_level_id': selectedEducationLevel
+                },
+                dataType: 'json',
+                success: function(data) {
+                    // Clear the subjects select
+                    subjectsSelect.empty();
+
+                    // Add a default option
+                    subjectsSelect.append($('<option>', {
+                        value: '',
+                        text: 'Select Subjects'
+                    }));
+
+                    // Populate the subjects select with retrieved data
+                    $.each(data, function(index, item) {
+                        subjectsSelect.append($('<option>', {
+                            value: item.id,
+                            text: item.subject_name
+                        }));
+                    });
+                },
+                error: function(xhr, status, error) {
+                    // Handle any errors here
+                    console.error(error);
+                }
+            });
+        });
+    });
+</script>
+
                 
 {% endblock main_content %}

@@ -8,9 +8,7 @@
     <a class="btn btn-primary" href="{% url 'add_student' %}">
         <i class="fas fa-plus"></i> New student
     </a>
-    <a class="btn btn-primary" href="#">
-        <i class="fas fa-upload"></i> Upload students
-    </a>
+
 {% endblock breadcrumb %}
 {% load static %}
 {% block main_content %}
@@ -83,8 +81,8 @@
         <tr>
             <td>{{ student.id }}</td>
             <td>{{ student.admin.first_name }} {{ student.admin.last_name }}</td>
-            <td>{{ student.school_segment }}</td>
-            <td>{{ student.current_class }}</td>
+            <td>{{ student.education_level.name }}</td>
+            <td>{{ student.selected_class.name }}</td>
             <td>{{ student.gender }}</td>
             {% if student.profile_pic %}
             <td><img src="{{ student.profile_pic }}" style="width:100px;" alt="Profile Picture" /></td>
@@ -99,8 +97,10 @@
                 <a href="{% url 'edit_student' student_id=student.admin.id  %}">
                     <button type="button" class="btn btn-primary btn-sm"><i class="fa fa-edit text-white"></i></button>
                 </a>
-                <a href="#">
-                    <button type="button" class="btn btn-danger btn-sm" onclick="if(confirm('Are you sure to delete this student?') === false) event.preventDefault()"><i class="fa fa-trash"></i></button>
+                <a href="{% url 'delete_student' student.id %}">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure to delete this student?')">
+                        <i class="fa fa-trash"></i>
+                    </button>
                 </a>
             </td>
         </tr>

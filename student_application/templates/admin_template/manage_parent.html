@@ -1,0 +1,144 @@
+{% extends 'admin_template/base_template.html' %}
+{% block page_title %}
+   List of all parents    
+{% endblock page_title %}
+{% block breadcrumb %}
+    <a class="btn btn-primary" href="{% url 'add_parents' %}">
+        <i class="fas fa-plus"></i> New parents
+    </a>
+
+{% endblock breadcrumb %}
+{% block main_content %}
+<div class="table-responsive">
+  <div class="table-responsive">
+    <div class="row">
+      <div class="col-md-3 ">
+        <form method="GET" action="{% url 'manage_parent' %}">
+            <div class="input-group ">              
+                <input type="number" name="per_page" class="form-control" placeholder="Items per page" aria-label="Items per page" aria-describedby="per-page-btn" min="1">
+                <div class="input-group-prepend">
+                  <button class="btn btn-primary mr-3 btn-sm" type="submit" id="per-page-btn">Set</button>
+              </div>
+            </div>
+        </form>
+        <p>Show <strong>{{ page_obj.paginator.per_page }}</strong> Entries</p>
+    </div>
+        
+ 
+    </div>
+</div>
+
+    <table class="table table-hover text-nowrap table-responsive-sm table-bordered table-striped table-sm">
+        <thead>
+            <tr>
+                <th>S/N</th>                
+                <th>Parent Name</th>
+                <th>Phone number</th>
+                <th>Address</th>
+                <th>Gender</th>
+                <th>Parent type</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for parents in page_obj %}
+            <tr>
+                <td>{{parents.id}}</td>
+                <td>{{ parents.admin.first_name }} {{ parents.admin.last_name }}</td>
+                <td>{{parents.phone}}</td>                       
+                <td>{{parents.address}}</td>
+                <td>{{parents.gender}}</td>
+                <td>{{parents.parent_type}}</td>
+                <td class="text-center">
+                    <a href="{% url 'single_parent_detail' parent_id=parents.id  %}">
+                        <button type="button" class="btn btn-light border btn-sm"><i class="fa fa-eye text-dark"></i></button>
+                    </a>
+                    <a href="{% url 'edit_parents' parent_id=parents.id  %}">
+                        <button type="button" class="btn btn-primary btn-sm"><i class="fa fa-edit text-white"></i></button>
+                    </a>
+                    <a href="#" id="delete-parent-link" data-parent-id="{{ parents.id }}">
+                        <button type="button" class="btn btn-danger btn-sm">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+    {% if page_obj.has_other_pages %}
+    <div aria-label="pagination">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}" tabindex="-1">Previous</a>
+            </li>
+            {% endif %}
+    
+            {% for page in page_obj.paginator.page_range %}
+    
+            {% if page_obj.number == page %}
+            <li class="page-item active" aria-current="page">
+                <span class="page-link">{{ page }}<span class="sr-only">(current)</span>
+                </span>
+            </li>
+            {% else %}
+            <li class="page-item"><a class="page-link" href="?page={{ page }}">{{ page }}</a></li>
+            {% endif %}
+    
+            {% endfor %}
+    
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+
+
+  
+{% endblock main_content %}
+
+{% block customer_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const deleteParentLink = document.getElementById("delete-parent-link");
+
+        if (deleteParentLink) {
+            deleteParentLink.addEventListener("click", function (e) {
+                e.preventDefault();
+
+                if (confirm("Are you sure to delete this parent?")) {
+                    // Get the parent ID from the data attribute
+                    const parentId = deleteParentLink.getAttribute("data-parent-id");
+
+                    // Send an AJAX request to delete the parent
+                    fetch(`/delete_parent/${parentId}/`, {
+                        method: "DELETE",
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}", // Include CSRF token
+                        },
+                    })
+                        .then((response) => {
+                            if (response.ok) {
+                                // Redirect or display a success message as needed
+                                window.location.href = "/manage_parent"; // Redirect to a parents list page
+                            } else {
+                                // Handle errors or display an error message
+                                alert("Failed to delete the parent.");
+                            }
+                        })
+                        .catch((error) => {
+                            console.error("Error:", error);
+                            alert("An error occurred while deleting the parent.");
+                        });
+                }
+            });
+        }
+    });
+</script>
+{% endblock customer_js %}
