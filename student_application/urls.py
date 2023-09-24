@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.conf.urls.static import static
 from django.urls import include, path
 from mujtabaa import settings
-from . import studentsView, views,adminView
+from . import studentsView, views,adminView,pdfView
 urlpatterns = [  
     path('', views.ShowLogin, name='login'),           
     path('dologin', views.DoLogin, name='DoLogin'),    
@@ -20,7 +20,8 @@ urlpatterns = [
     path('add_previous_education/<int:student_id>/', adminView.add_previous_student_education, name='add_previous_education'),
     path('edit_previous_education/<int:student_id>/<int:previous_education_id>/', adminView.add_previous_student_education, name='edit_previous_education'),
     path('add_previous_education_save/<int:student_id>/', adminView.add_previous_education_save, name='add_previous_education_save'),
-    path('edit_previous_education/<int:student_id>/<int:previous_education_id>/', adminView.edit_previous_education_save, name='edit_previous_education_save'),
+    path('edit_previous_education_save/<int:student_id>/<int:previous_education_id>/', adminView.edit_previous_education_save, name='edit_previous_education_save'),
+    path('generate_student_form/', adminView.generate_student_form, name='generate_student_form'),
 
     
     
@@ -87,5 +88,8 @@ urlpatterns = [
     path('student_profile', studentsView.student_profile, name='student_profile'),    
     path('student_profile_save', studentsView.student_profile_save, name='student_profile_save'),    
     path('logout_user', views.logout_user, name='logout_user'),  # Move this line here
+    
+    # pdf views urls
+    path('generate_pdf/', pdfView.generate_pdf, name='generate_pdf'),
     
 ] 

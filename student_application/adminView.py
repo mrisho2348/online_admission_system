@@ -7,7 +7,16 @@ from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.core.files.storage import FileSystemStorage
-
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib import colors
+from reportlab.lib.units import inch
+from reportlab.pdfgen import canvas
+from django.conf import settings
+from django.templatetags.static import static
+import os
 from .models import (  
 
     CustomUser,
@@ -480,14 +489,15 @@ def add_student_save(request):
     return redirect("add_student")
 
 def add_previous_student_education(request, student_id, previous_education_id=None):
-    student = CustomUser.objects.get(id=student_id)
+    student = get_object_or_404(Students, id=student_id)
     edit_mode = False
     previous_education = None
-
-    if previous_education_id:
+    education_levels = EducationLevel.objects.all()
+    previous_education = PreviousEducation.objects.filter(student=student)    
+    if previous_education:
         # Check if the request is for editing an existing previous education entry
         try:
-            previous_education = PreviousEducation.objects.get(id=previous_education_id, student=student)
+            previous_education = PreviousEducation.objects.get(student=student)
             edit_mode = True
         except PreviousEducation.DoesNotExist:
             # If the previous education entry doesn't exist or doesn't belong to the student, it's treated as a new entry.
@@ -497,9 +507,10 @@ def add_previous_student_education(request, student_id, previous_education_id=No
         'student': student,
         'previous_education': previous_education,
         'edit_mode': edit_mode,
+        'education_levels': education_levels,
     }
 
-    return render(request, "previous_education_form.html", context)        
+    return render(request, "admin_template/add_previous_education.html", context)        
 
 def add_student(request):
     all_subjects = Subject.objects.all()
@@ -519,6 +530,8 @@ def add_student(request):
 def single_student_detail(request, student_id):
     students = get_object_or_404(Students, id=student_id)
     parents = Parent.objects.filter(student=students)
+    previous_education = PreviousEducation.objects.filter(student=students)
+    
     selected_subjects = students.subjects.all()
     father = None
     mother = None
@@ -553,12 +566,13 @@ def single_student_detail(request, student_id):
         'male_sponsor': male_sponsor,
         'female_sponsor': female_sponsor,
         'selected_subjects':selected_subjects,
+        'previousEducation':previous_education,
     }
 
     return render(request, "admin_template/student_details.html", context)
 
 def add_previous_education_save(request, student_id):
-    student = get_object_or_404(CustomUser, id=student_id)
+    student = get_object_or_404(Students, id=student_id)
     edit_mode = False
     previous_education = None
 
@@ -601,7 +615,7 @@ def add_previous_education_save(request, student_id):
 def edit_previous_education_save(request, student_id, previous_education_id):
     try:
         # Retrieve the student and previous education objects
-        student = CustomUser.objects.get(id=student_id)
+        student = get_object_or_404(Students, id=student_id)
         previous_education = PreviousEducation.objects.get(id=previous_education_id, student=student)
 
         if request.method == "POST":
@@ -876,7 +890,8 @@ def edit_student_save(request):
 
         # del request.session['student_id']
         messages.success(request, "Successfully edited student")
-        return HttpResponseRedirect(reverse("edit_student", kwargs={"student_id": student_id}))
+        return redirect("add_previous_education", student_id=user.students.id)
+        # return HttpResponseRedirect(reverse("edit_student", kwargs={"student_id": student_id}))
 
     except CustomUser.DoesNotExist:
         messages.error(request, "User does not exist")
@@ -1366,3 +1381,77 @@ def delete_education_level(request, education_level_id):
 
     # If the request method is not POST, display a confirmation page.
     return redirect('confirm_delete_education_level', education_level_id=education_level_id)
+
+
+def generate_student_form(request):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="student_form.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=letter)
+
+    styles = getSampleStyleSheet()
+    style_heading = styles['Heading1']
+    style_normal = styles['Normal']
+    style_normal.leading = 15
+
+    story = []
+
+    # Create a custom canvas to add watermark and background image
+    c = canvas.Canvas(response)
+    
+    # Add a watermark
+    c.setFont("Helvetica", 40)
+    c.setFillGray(0.7, 0.7)  # Set the fill color for the watermark
+    c.rotate(45)  # Rotate the text
+    c.drawString(100, 300, "Watermark")
+
+
+    c.save()  # Save the canvas
+
+    # Add a title to the form
+    title = Paragraph('Student Information Form', style_heading)
+    story.append(title)
+
+    # Define form fields for the PDF
+    form_fields = [
+        ("First Name:", ""),
+        ("Surname:", ""),
+        ("Service Type:", ""),
+        ("Admission Fee Paid:", ""),
+        ("Interview Details:", ""),
+        ("Date of Birth:", ""),
+        ("Gender:", ""),
+        ("Phone Number:", ""),
+        ("Education Level:", ""),
+        ("Selected Class:", ""),
+        ("Active:", ""),
+        ("Birth Certificate ID:", ""),
+        ("Allergies:", ""),
+        ("Address:", ""),
+        ("Street Address:", ""),
+        ("House Number:", ""),
+        ("Health Status:", ""),
+        ("Physical Disability:", ""),
+        ("Subjects:", ""),
+        ("Profile Picture:", ""),
+        ("Birth Certificate Photo:", "")
+    ]
+
+    # Create a grid layout as a table
+    table_data = []
+    for label, value in form_fields:
+        table_data.append([label, value])
+
+    table = Table(table_data, colWidths=[3*inch, 3*inch])
+    table.setStyle(TableStyle([
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+
+    story.append(Spacer(1, 12))
+    story.append(table)
+
+    doc.build(story)
+
+    return response

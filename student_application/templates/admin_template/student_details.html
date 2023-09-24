@@ -84,9 +84,21 @@
         {% if students.school_segment %}
         <p class="card-text">Education level: {{ students.school_segment }}</p>
         {% endif %}
-        {% if students.current_class %}
-        <p class="card-text">Current Class: {{ students.current_class }}</p>
+        {% if students.selected_class.name %}
+        <p class="card-text">Current Class: {{ students.selected_class.name }}</p>
         {% endif %}
+        {% if previousEducation %}
+        {% for education in previousEducation %}
+            <p class="card-text">Examination Number: {{ education.examination_number }}</p>
+            <p class="card-text">Year Completed: {{ education.year_completed }}</p>
+            <p class="card-text">Education Level: {{ education.education_level }}</p>
+            <p class="card-text">School Name: {{ education.school_name }}</p>
+            <p class="card-text">Results: {{ education.results }}</p>
+            <!-- You can add more fields as needed -->
+        {% endfor %}
+    {% else %}
+        <p class="card-text">No previous education information available for this student.</p>
+    {% endif %}
         
         {% if students.shift_type %}
         <p class="card-text">Shift: {{ students.shift_type }}</p>

@@ -13,6 +13,8 @@ class LoginCheckMiddleWare(MiddlewareMixin):
             if user.user_type == "1":
                if modulename == "student_application.adminView":
                    pass
+               elif modulename == "student_application.pdfView":
+                   pass
                elif modulename == "student_application.views" or  modulename == "django.views.static":
                    pass
             
